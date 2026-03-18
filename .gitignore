@@ -1,0 +1,7 @@
+key/*.json 
+key/ 
+*.json 
+*.db 
+*.h5 
+*.pkl 
+__pycache__/ 

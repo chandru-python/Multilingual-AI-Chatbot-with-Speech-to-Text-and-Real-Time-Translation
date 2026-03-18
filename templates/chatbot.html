@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot with Speech-to-Text and Translation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Body Style */
+        body {
+            background-color: #f3f4f6; /* Light gray background */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    
+        /* Chat Container */
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #e2f1fa;
+            border-radius: 15px;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 2px solid #e0e0e0;
+        }
+    
+        /* Chat Header */
+        h5 {
+    font-size: 32px;
+    color: #333;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeIn 1s ease-out forwards; /* Apply the animation */
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+    
+        /* Chat Box (Larger output screen) */
+        /* Chat Box (Larger output screen) */
+.chat-box {
+    flex-grow: 1;
+    max-height: 600px;  /* Set the max-height for the chat box */
+    overflow-y: auto;   /* Show scrollbar only when content exceeds max-height */
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #ffffff;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 25px;
+    border: 1px solid #ddd; /* Optional: Adds a border around the chat box */
+}
+
+/* Additional styling for scroll button visibility */
+.chat-box::-webkit-scrollbar {
+    width: 8px; /* Narrow scrollbar */
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background-color: #4e73df; /* Blue thumb */
+    border-radius: 10px;
+}
+
+.chat-box::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+    
+        /* User and Bot Messages */
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 12px 18px;
+            border-radius: 12px;
+            max-width: 70%;
+            word-wrap: break-word;
+            font-size: 16px;
+        }
+    
+        /* User Message (Input) */
+        .user-message {
+            background-color: #4e73df; /* Blue */
+            color: #fff;
+            align-self: flex-start;
+        }
+    
+        /* Bot Message (Output) */
+        .bot-message {
+            background-color: #ffddc1; /* Soft pink */
+            color: #721c24;
+            align-self: flex-end;
+        }
+    
+        /* Input Section */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Reduced gap between buttons and input */
+        }
+    
+        .form-control {
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            background-color: #f5f5f5;
+            font-size: 16px;
+            color: #333;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+    
+        .form-control:focus {
+            outline: none;
+            border-color: #4e73df;
+            box-shadow: 0 0 5px rgba(78, 115, 223, 0.4);
+        }
+    
+        /* Send Button (Reduced size) */
+        #sendButton {
+            background-color: #4e73df;
+            color: white;
+            padding: 10px 15px; /* Reduced padding */
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px; /* Reduced font size */
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+    
+        #sendButton:hover {
+            background-color: #2e59d9;
+        }
+    
+        /* Mic Button (Reduced size) */
+        #micButton {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px; /* Reduced padding */
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px; /* Reduced font size */
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+    
+        #micButton:hover {
+            background-color: #218838;
+        }
+    
+        /* Language Selector */
+        .language-selector select {
+            padding: 14px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            background-color: #f5f5f5;
+            font-size: 16px;
+            color: #333;
+        }
+    
+        .language-selector select:focus {
+            outline: none;
+            border-color: #4e73df;
+            box-shadow: 0 0 5px rgba(78, 115, 223, 0.4);
+        }
+    
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .chat-container {
+                padding: 20px;
+                width: 90%;
+                max-width: 100%;
+            }
+    
+            h5 {
+                font-size: 28px;
+            }
+    
+            .form-control {
+                font-size: 14px;
+            }
+    
+            #sendButton, #micButton {
+                padding: 12px;
+                font-size: 14px;
+            }
+    
+            .chat-message {
+                font-size: 14px;
+            }
+        }
+    
+        /* Hover Effects on Chatbox */
+        .chat-message:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+        }
+    </style>
+
+</head>
+<body>
+<div class="container chat-container">
+    <h5 class="text-center">Chatbot with Speech-to-Text and Translation</h5>
+
+    <div class="chat-box" id="chatBox"></div>
+
+    <div class="form-group mt-3">
+        <textarea class="form-control" id="userInput" rows="3" placeholder="Type or speak your message..."></textarea>
+        <button class="btn" id="sendButton" onclick="sendMessage()">Send</button>
+        <button class="btn" id="micButton" onclick="toggleListening()">🎤 Speak</button>
+    </div>
+
+    <div class="language-selector mt-3">
+        <select class="form-control" id="knownLanguage">
+            <option value="en-US">English</option> 
+            <option value="hi-IN">Hindi</option>
+            <option value="kn-IN">Kannada</option>
+        </select>
+    
+        <select class="form-control mt-2" id="convertLanguage">
+            <option value="en">English</option>
+            <option value="hi">Hindi</option>
+            <option value="kn">Kannada</option>
+        </select>
+    </div>
+</div>
+<script>
+let recognition;
+let isListening = false;
+let knownLanguage = "en-US"; // Default for speech recognition (English)
+let convertLanguage = "en"; // Default for translation (English)
+
+// Handle language selection for speech recognition and translation
+document.getElementById('knownLanguage').addEventListener('change', function () {
+    knownLanguage = this.value;
+    localStorage.setItem('knownLanguage', knownLanguage);
+
+    // Automatically set the convertLanguage to match knownLanguage
+    convertLanguage = knownLanguage.split('-')[0]; // Extract the language code (e.g., "kn" for Kannada)
+    document.getElementById('convertLanguage').value = convertLanguage;
+    localStorage.setItem('convertLanguage', convertLanguage);
+});
+
+document.getElementById('convertLanguage').addEventListener('change', function () {
+    convertLanguage = this.value;
+    localStorage.setItem('convertLanguage', convertLanguage);
+});
+
+// Check localStorage when the page loads
+window.onload = function() {
+    const storedKnownLanguage = localStorage.getItem('knownLanguage');
+    const storedConvertLanguage = localStorage.getItem('convertLanguage');
+
+    if (storedKnownLanguage) {
+        knownLanguage = storedKnownLanguage;
+        document.getElementById('knownLanguage').value = knownLanguage;
+    }
+
+    if (storedConvertLanguage) {
+        convertLanguage = storedConvertLanguage;
+        document.getElementById('convertLanguage').value = convertLanguage;
+    }
+
+    // Automatically update the convertLanguage when the knownLanguage is set
+    if (knownLanguage) {
+        convertLanguage = knownLanguage.split('-')[0]; // Set conversion language to match knownLanguage
+        document.getElementById('convertLanguage').value = convertLanguage;
+    }
+
+    if (!knownLanguage || !convertLanguage) {
+        alert("Please select both 'Known Language' and 'Convert to Language' before sending a message.");
+    }
+};
+
+// Function to toggle speech recognition (start/stop recording)
+function toggleListening() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Speech Recognition is not supported in your browser.");
+        return;
+    }
+
+    if (!isListening) {
+        recognition = new webkitSpeechRecognition();
+
+        // Ensure correct language code for speech recognition
+        recognition.lang = knownLanguage; // Use the language selected by the user
+        recognition.interimResults = false; // Turn off interim results (don't display partial speech)
+
+        recognition.onstart = () => {
+            console.log("Speech recognition started...");
+            isListening = true;
+            document.getElementById('micButton').textContent = "🛑 Stop"; // Change button text to "Stop"
+        };
+
+        recognition.onresult = async (event) => {
+            const transcript = event.results[event.results.length - 1][0].transcript;
+            console.log(`Final Transcript: ${transcript}`);  // Log the final transcript after stopping
+            document.getElementById('userInput').value = transcript; // Show the transcribed input
+
+            // Optionally, automatically send the translated message
+            await sendMessage(transcript);
+        };
+
+        recognition.onerror = (event) => {
+            console.error("Speech recognition error:", event.error);
+            isListening = false;
+            document.getElementById('micButton').textContent = "🎤 Speak"; // Change button back to "Speak"
+        };
+
+        recognition.onend = () => {
+            console.log("Speech recognition ended.");
+            isListening = false;
+            document.getElementById('micButton').textContent = "🎤 Speak"; // Change button back to "Speak"
+        };
+
+        recognition.start();
+    } else {
+        recognition.stop();
+        isListening = false;
+        document.getElementById('micButton').textContent = "🎤 Speak"; // Change button back to "Speak"
+    }
+}
+
+// Function to add messages to the chatbox
+function addMessageToChatBox(message, messageType) {
+    const chatBox = document.getElementById('chatBox');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${messageType}`;
+    messageDiv.textContent = message;
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Function to send message and get the chatbot response
+async function sendMessage(userInput = null) {
+    const input = userInput || document.getElementById('userInput').value.trim();
+    if (!input) {
+        alert("Please enter a message.");
+        return;
+    }
+
+    // Display the user's input message
+    addMessageToChatBox("User: " + input, "user-message");
+
+    // Clear the input field
+    document.getElementById('userInput').value = "";
+
+    // Translate the input to English before sending to the backend
+    const translatedInput = await translateText(input, convertLanguage, 'en');
+
+    // Send the translated message to the backend
+    try {
+        const response = await getChatbotResponse(translatedInput);
+
+        // Translate the response from English to the selected language (e.g., Kannada, Hindi)
+        const translatedResponse = await translateText(response, 'en', convertLanguage);
+
+        // Display the translated response in the chatbot
+        addMessageToChatBox("Bot: " + translatedResponse, "bot-message");
+    } catch (error) {
+        console.error("Error getting chatbot response:", error);
+        addMessageToChatBox("Error occurred while getting response.", "bot-message");
+    }
+}
+
+// Function to get chatbot response from the backend
+async function getChatbotResponse(userInput) {
+    const response = await fetch('/get-bot-response', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userInput })
+    });
+
+    const data = await response.json();
+    return data.response || "I couldn't understand that.";
+}
+
+// Function to translate text using the backend
+async function translateText(text, sourceLang, targetLang) {
+    try {
+        const response = await fetch('/translate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text, sourceLang, targetLang }),
+        });
+
+        const data = await response.json();
+        return data.translatedText || text;
+    } catch (error) {
+        console.error("Translation error:", error);
+        return text;
+    }
+}
+
+</script>
+</body>
+</html>
